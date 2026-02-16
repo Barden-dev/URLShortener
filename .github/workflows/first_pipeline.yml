@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Installing python linters
+        run: pip install flake8 black isort
+
+      - name: Check prod with linters
+        run: |
+          isort --check .
+          black --check .
+          flake8 .
+
+  deploy_job:
+    needs: build_job
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stops all containers
+        run: docker compose down
+
+      - name: Build docker compose
+        run: docker compose up --build -d
+
+      - name: Wait for loading database
+        run: sleep 10
+
+      - name: Update alembic head
+        run: docker-compose exec web alembic upgrade head

@@ -42,4 +42,4 @@ jobs:
         run: sleep 10
 
       - name: Update alembic head
-        run: docker-compose exec web alembic upgrade head
+        run: docker compose exec web alembic upgrade head

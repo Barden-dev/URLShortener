@@ -22,6 +22,19 @@ services:
       - "80:80"
     depends_on:
       - web
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    command:
+      - sleep infinity
 
 volumes:
   postgres_data:
+  certbot_conf:
+  certbot_www:

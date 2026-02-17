@@ -1,8 +1,6 @@
 services:
   web:
     build: .
-    ports:
-      - "8000:8000"
     depends_on:
       - db
     environment:
@@ -17,6 +15,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

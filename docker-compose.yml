@@ -31,8 +31,7 @@ services:
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
-    command:
-      - sleep infinity
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; done;'"
 
 volumes:
   postgres_data:

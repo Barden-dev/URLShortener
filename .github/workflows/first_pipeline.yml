@@ -17,7 +17,7 @@ jobs:
           cache: 'pip'
 
       - name: Installing python linters and pytest
-        run: pip install flake8 black isort pytest
+        run: pip install flake8 black isort pytest pytest_asyncio
 
       - name: Check prod with linters
         run: |

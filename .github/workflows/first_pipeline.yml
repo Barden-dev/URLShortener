@@ -25,6 +25,9 @@ jobs:
           black --check .
           flake8 .
 
+      - name: Check prod with pytest
+        run: pytest
+
   deploy_job:
     needs: build_job
     runs-on: self-hosted

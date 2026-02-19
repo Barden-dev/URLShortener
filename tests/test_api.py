@@ -49,3 +49,11 @@ async def test_multiple_link_clicks(client):
     stats_data = url_stats.json()
 
     assert stats_data["clicks"] == 10
+
+
+async def test_url_creation_limit(client):
+    for i in range(10):
+        await client.post("/shorten", json={"target_url": "https://youtube.com"})
+    response = await client.post("/shorten", json={"target_url": "https://youtube.com"})
+
+    assert response.status_code == 429

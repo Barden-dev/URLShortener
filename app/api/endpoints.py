@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -12,9 +14,14 @@ from app.services.url_service import (
 
 router = APIRouter()
 
+limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/shorten", response_model=UrlInfo)
-async def shorten(scheme: UrlCreate, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def shorten(
+    request: Request, scheme: UrlCreate, db: AsyncSession = Depends(get_db)
+):
     created_url = await create_short_url(db, str(scheme.target_url))
     return created_url
 

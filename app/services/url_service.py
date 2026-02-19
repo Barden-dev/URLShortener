@@ -18,4 +18,10 @@ async def create_short_url(db: AsyncSession, target_url: str) -> Url:
 
 async def get_original_url(db: AsyncSession, secret_key: str):
     result = await db.execute(select(Url).where(Url.secret_key == secret_key))
-    return result.scalars().first()
+    url_object = result.scalars().first()
+    if url_object:
+        url_object.clicks += 1
+        await db.commit()
+        await db.refresh(url_object)
+
+    return url_object

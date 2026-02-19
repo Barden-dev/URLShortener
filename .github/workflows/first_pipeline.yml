@@ -16,8 +16,8 @@ jobs:
           python-version: '3.13'
           cache: 'pip'
 
-      - name: Installing python linters
-        run: pip install flake8 black isort
+      - name: Installing python linters and pytest
+        run: pip install flake8 black isort pytest
 
       - name: Check prod with linters
         run: |

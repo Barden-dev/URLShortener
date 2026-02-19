@@ -47,6 +47,8 @@ jobs:
           flake8 .
 
       - name: Check prod with pytest
+        env:
+          DATABASE_URL: "postgresql+asyncpg://test_user:test_password@localhost:5432/test_db"
         run: pytest
 
   deploy_job:

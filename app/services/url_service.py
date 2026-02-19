@@ -20,8 +20,14 @@ async def get_original_url(db: AsyncSession, secret_key: str):
     result = await db.execute(select(Url).where(Url.secret_key == secret_key))
     url_object = result.scalars().first()
     if url_object:
-        url_object.clicks += 1
+        url_object.clicks = Url.clicks + 1
         await db.commit()
         await db.refresh(url_object)
 
     return url_object
+
+
+async def get_short_url_stats(db: AsyncSession, secret_key: str):
+    result = await db.execute(select(Url).where(Url.secret_key == secret_key))
+
+    return result.scalars().first()

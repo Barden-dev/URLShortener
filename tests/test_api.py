@@ -26,3 +26,26 @@ async def test_404_not_found(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
+
+
+async def test_zero_link_clicks(client):
+    response = await client.post("/shorten", json={"target_url": "https://youtube.com"})
+    response_data = response.json()
+
+    url_stats = await client.get(f"/stats/{response_data['secret_key']}")
+    stats_data = url_stats.json()
+
+    assert stats_data["clicks"] == 0
+
+
+async def test_multiple_link_clicks(client):
+    response = await client.post("/shorten", json={"target_url": "https://youtube.com"})
+    response_data = response.json()
+
+    for i in range(10):
+        redirect = await client.get(f"/{response_data["secret_key"]}", follow_redirects=False)
+
+    url_stats = await client.get(f"/stats/{response_data['secret_key']}")
+    stats_data = url_stats.json()
+
+    assert stats_data["clicks"] == 10

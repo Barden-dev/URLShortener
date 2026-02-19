@@ -43,7 +43,9 @@ async def test_multiple_link_clicks(client):
     response_data = response.json()
 
     for i in range(10):
-        redirect = await client.get(f"/{response_data["secret_key"]}", follow_redirects=False)
+        await client.get(
+            f"/{response_data["secret_key"]}", follow_redirects=False
+        )
 
     url_stats = await client.get(f"/stats/{response_data['secret_key']}")
     stats_data = url_stats.json()

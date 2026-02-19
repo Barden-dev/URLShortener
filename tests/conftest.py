@@ -1,14 +1,16 @@
-import sys
-import os
 import asyncio
+import os
+import sys
+
 import pytest
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
 from dotenv import load_dotenv
-from app.main import app
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
+
 from app.core.database import Base, get_db
+from app.main import app
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -23,6 +25,7 @@ if not TEST_DATABASE_URL:
 engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
 async_session = async_sessionmaker(engine)
 
+
 @pytest_asyncio.fixture(autouse=True)
 async def async_prepare_database():
     async with engine.begin() as conn:
@@ -36,9 +39,11 @@ async def async_prepare_database():
 def async_backend():
     return "asyncio"
 
+
 async def override_db():
     async with async_session() as session:
         yield session
+
 
 @pytest_asyncio.fixture(scope="function")
 async def client():

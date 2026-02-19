@@ -17,7 +17,6 @@ async def test_success_redirect(client):
 
 async def test_create_invalid_url(client):
     response = await client.post("/shorten", json={"target_url": "some-garbage"})
-    data = response.json()
 
     assert response.status_code == 422
 

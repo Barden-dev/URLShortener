@@ -11,6 +11,7 @@ class AppBaseSettings(BaseSettings):
     )
 
     database_url: str
+    redis_url: str
 
 
 settings = AppBaseSettings()

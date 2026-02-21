@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "dev"]
 
 jobs:
   build_job:
@@ -39,6 +39,7 @@ jobs:
       - name: Create .env.test file
         run: |
           echo "TEST_DATABASE_URL=postgresql+asyncpg://test_user:test_password@localhost:5432/test_db" >> .env.test
+          echo "TEST_REDIS_URL=redis://localhost:6379/0" >> .env.test
 
       - name: Check prod with linters
         run: |
@@ -64,6 +65,10 @@ jobs:
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+          echo "REDIS_DB=${{ secrets.REDIS_DB }}" >> .env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
 
       - name: Stops all containers
         run: docker compose down

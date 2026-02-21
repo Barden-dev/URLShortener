@@ -31,23 +31,23 @@ async def test_404_not_found(client):
 async def test_zero_link_clicks(client):
     response = await client.post("/shorten", json={"target_url": "https://youtube.com"})
     response_data = response.json()
-
+    print(response_data)
     url_stats = await client.get(f"/stats/{response_data['secret_key']}")
     stats_data = url_stats.json()
-
+    print(stats_data)
     assert stats_data["clicks"] == 0
 
 
 async def test_multiple_link_clicks(client):
     response = await client.post("/shorten", json={"target_url": "https://youtube.com"})
     response_data = response.json()
-
+    print(response_data)
     for i in range(10):
         await client.get(f"/{response_data["secret_key"]}", follow_redirects=False)
 
     url_stats = await client.get(f"/stats/{response_data['secret_key']}")
     stats_data = url_stats.json()
-
+    print(stats_data)
     assert stats_data["clicks"] == 10
 
 

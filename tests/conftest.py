@@ -5,11 +5,13 @@ import sys
 import pytest
 import pytest_asyncio
 from dotenv import load_dotenv
+from fakeredis import FakeAsyncRedis
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.core.database import Base, get_db
+from app.core.redis_db import get_redis
 from app.main import app
 
 if sys.platform == "win32":
@@ -45,9 +47,20 @@ async def override_db():
         yield session
 
 
+@pytest_asyncio.fixture()
+async def mock_redis():
+    client = FakeAsyncRedis(decode_responses=True)
+    yield client
+    await client.flushall()
+
+
 @pytest_asyncio.fixture(scope="function")
-async def client():
+async def client(mock_redis):
+    async def override_redis():
+        yield mock_redis
+
     app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_redis] = override_redis
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

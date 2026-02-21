@@ -50,6 +50,7 @@ jobs:
       - name: Check prod with pytest
         env:
           DATABASE_URL: "postgresql+asyncpg://test_user:test_password@localhost:5432/test_db"
+          REDIS_URL: "redis://:test_password@localhost:6379/1"
         run: pytest
 
   deploy_job:

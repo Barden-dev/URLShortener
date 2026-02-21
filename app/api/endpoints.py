@@ -1,15 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from pydantic import HttpUrl
+from redis import asyncio as asyncredis
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.schemas.url import UrlCreate, UrlInfo
+from app.core.redis_db import get_redis
+from app.schemas.url_scheme import UrlCreate, UrlInfo
 from app.services.url_service import (
-    create_short_url,
+    generate_secret_key,
     get_original_url,
     get_short_url_stats,
+    increment_clicks_worker,
+    save_url_worker,
 )
 
 router = APIRouter()
@@ -20,18 +25,46 @@ limiter = Limiter(key_func=get_remote_address)
 @router.post("/shorten", response_model=UrlInfo)
 @limiter.limit("10/minute")
 async def shorten(
-    request: Request, scheme: UrlCreate, db: AsyncSession = Depends(get_db)
+    request: Request,
+    scheme: UrlCreate,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    redis_client: asyncredis.Redis = Depends(get_redis),
 ):
-    created_url = await create_short_url(db, str(scheme.target_url))
-    return created_url
+    secret_key = generate_secret_key()
+
+    background_tasks.add_task(
+        save_url_worker,
+        secret_key=secret_key,
+        target_url=str(scheme.target_url),
+        redis_client=redis_client,
+        db=db,
+    )
+
+    return UrlInfo(
+        target_url=HttpUrl(scheme.target_url),
+        secret_key=secret_key,
+        clicks=0,
+        is_active=True,
+    )
 
 
 @router.get("/{secret_key}")
-async def redirect(secret_key: str, db: AsyncSession = Depends(get_db)):
-    original_url = await get_original_url(db, secret_key)
+async def redirect(
+    secret_key: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    redis_client: asyncredis.Redis = Depends(get_redis),
+):
+    original_url = await get_original_url(
+        redis_client=redis_client, db=db, secret_key=secret_key
+    )
     if not original_url:
         raise HTTPException(status_code=404)
-    return RedirectResponse(original_url.target_url)
+
+    background_tasks.add_task(increment_clicks_worker, secret_key=secret_key, db=db)
+
+    return RedirectResponse(original_url)
 
 
 @router.get("/stats/{secret_key}")

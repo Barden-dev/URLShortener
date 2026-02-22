@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-Instrumentator().instrument(app).expose(app, include_redis=False)
+Instrumentator().instrument(app).expose(app, include_in_schema=False)
 
 app.include_router(router)
 

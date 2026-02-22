@@ -41,13 +41,13 @@ jobs:
           echo "TEST_DATABASE_URL=postgresql+asyncpg://test_user:test_password@localhost:5432/test_db" >> .env.test
           echo "TEST_REDIS_URL=redis://localhost:6379/0" >> .env.test
 
-      - name: Check prod with linters
+      - name: Check production with linters
         run: |
           isort --check .
           black --check .
           flake8 .
 
-      - name: Check prod with pytest
+      - name: Check production with pytest
         env:
           DATABASE_URL: "postgresql+asyncpg://test_user:test_password@localhost:5432/test_db"
           REDIS_URL: "redis://:test_password@localhost:6379/1"
@@ -56,21 +56,31 @@ jobs:
   deploy_job:
     needs: build_job
     runs-on: self-hosted
+    environment: Production
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Create .env file
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_DB: ${{ secrets.REDIS_DB }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+
         run: |
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-          echo "REDIS_DB=${{ secrets.REDIS_DB }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          touch .env
+          echo "POSTGRES_USER=$POSTGRES_USER" >> .env
+          echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
+          echo "POSTGRES_DB=$POSTGRES_DB" >> .env
+          echo "DATABASE_URL=$DATABASE_URL" >> .env
+          echo "REDIS_PASSWORD=$REDIS_PASSWORD" >> .env
+          echo "REDIS_DB=$REDIS_DB" >> .env
+          echo "REDIS_URL=$REDIS_URL" >> .env
 
       - name: Stops all containers
         run: docker compose down
@@ -83,3 +93,7 @@ jobs:
 
       - name: Update alembic head
         run: docker compose exec web alembic upgrade head
+
+      - name: Cleanup workspace
+        if: always()
+        run: rm -rf .env

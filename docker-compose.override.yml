@@ -1,0 +1,22 @@
+services:
+  web:
+    ports:
+      - "8000:8000"
+
+  nginx:
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/local.conf:/etc/nginx/templates/default.conf.template:ro
+
+  db:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  grafana:
+    environment:
+      GF_SERVER_ROOT_URL: "http://localhost:8080/grafana/"

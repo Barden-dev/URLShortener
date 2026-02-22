@@ -18,19 +18,19 @@ Instead of just building a basic CRUD app, this project focuses on production-li
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Barden-dev/URLShortener.git
    cd URLShortener
    ```
    
 2. **Environment Variables:**
-   Rename `.env.example` to `.env` and fill in your local credentials for Postgres and Redis.
+   Rename `.env.example` to `.env` and fill in your local credentials for Postgres and Redis. By default the domain is `localhost`, you can change it for example to `example.com`
 
 3. **Run with Docker:**
    ```bash
-   docker-compose up -d --build 
+   docker compose up -d --build 
    ```
    
-* The API will be available at `http://localhost`. The Grafana dashboard is routed through Nginx at `/grafana/`.
+* The API will be available at `http://localhost:8080`. The Grafana dashboard is routed through Nginx at `/grafana/`.
 
 ## 🔌 API Usage
 

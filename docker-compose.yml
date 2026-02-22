@@ -39,13 +39,16 @@ services:
       retries: 5
 
   nginx:
-    build: ./nginx
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
     depends_on:
       - web
     volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
 
@@ -58,13 +61,14 @@ services:
   grafana:
     image: grafana/grafana
     environment:
-      GF_SERVER_ROOT_URL: "https://bdnsrvepic.duckdns.org/grafana/"
+      GF_SERVER_ROOT_URL: "https://${DOMAIN}/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: true
     volumes:
       - grafana_data:/var/lib/grafana
 
   certbot:
     image: certbot/certbot:latest
+    profiles: ["prod"]
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot

@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -40,6 +41,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -54,12 +56,14 @@ services:
 
   prometheus:
     image: prom/prometheus
+    restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
 
   grafana:
     image: grafana/grafana
+    restart: unless-stopped
     environment:
       GF_SERVER_ROOT_URL: "https://${DOMAIN}/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: true
@@ -68,6 +72,7 @@ services:
 
   certbot:
     image: certbot/certbot:latest
+    restart: unless-stopped
     profiles: ["prod"]
     volumes:
       - certbot_conf:/etc/letsencrypt
